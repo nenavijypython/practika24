@@ -78,9 +78,12 @@ def collusions_check(ball, player1, player2, ball_x_direction, ball_y_direction,
         hit_sound.play()
         offset = (ball.centery - player1.centery) / 40
         ball_y_direction = offset
-        ball_speed += 0.1
+        ball_speed += 0.15
         pl_speed += pl_speed_increment
-        cpu_speed += pl_speed_increment
+        if mode == "cpu":
+            cpu_speed += pl_speed_increment + 0.1
+        else:
+            cpu_speed += pl_speed_increment
     elif ball.colliderect(player2):
         ball_x_direction = -1
         hit_sound.play()
@@ -88,7 +91,10 @@ def collusions_check(ball, player1, player2, ball_x_direction, ball_y_direction,
         ball_y_direction = offset
         ball_speed += 0.1
         pl_speed += pl_speed_increment
-        cpu_speed += pl_speed_increment
+        if mode == "cpu":
+            cpu_speed += pl_speed_increment + 0.1
+        else:
+            cpu_speed += pl_speed_increment
     return ball_x_direction, ball_y_direction, ball_speed
 
 
