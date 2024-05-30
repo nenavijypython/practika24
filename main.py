@@ -1,31 +1,29 @@
 import pygame
 import sys
 import random
-from diffic import *  # импортируем настройки сложности
-from mode import choose_mode  # импортируем функцию выбора режима игры
-from rounds import choose_rounds  # импортируем функцию выбора количества раундов
+from diffic import *
+from mode import choose_mode
+from rounds import choose_rounds
 
-# инициализация Pygame и начальных настроек
 pygame.init()
-font_path = 'THUG____.TTF' #основной шрифт
+font_path = 'THUG____.TTF'
 menu_font = pygame.font.Font(font_path, 36)
 instruction_font = pygame.font.Font(None, 24)
 
 screen = pygame.display.set_mode([600, 600])
 pygame.display.set_caption("Pong Game")
-hit_sound = pygame.mixer.Sound('pong_sound.wav')#звук удара мяча об ракетку
+hit_sound = pygame.mixer.Sound('pong_sound.wav')
 timer = pygame.time.Clock()
-fr = 60  # частота обновления экрана
+fr = 60
 
-# определение цветов и начальных состояний
 background = (0, 0, 0)
 block_color = (255, 255, 255)
 
-paused = False # флаг на паузу
+paused = False
 pongloop = True
 game_over = False
+winner_message = ""
 
-# начальные позиции игроков и мяча
 player1_place = 260
 player2_place = 260
 cpu_place = 260
@@ -34,7 +32,6 @@ ball_y = 290
 pl1_direction = 0
 pl2_direction = 0
 
-# случайное начальное направление движения мяча
 ball_x_direction = random.choice([-1, 1])
 ball_y_direction = random.choice([-1, 1])
 
@@ -51,7 +48,6 @@ ball_speed = selected_difficulty["ball_speed"]
 cpu_speed = selected_difficulty["cpu_speed"]
 pl_speed = selected_difficulty["pl_speed"]
 
-# функция обновления позиции cpu-игрока
 def cpu_upd(cpu_place, ball_y, cpu_speed):
     if cpu_place + 30 > ball_y + 10:
         cpu_place -= cpu_speed
@@ -59,7 +55,6 @@ def cpu_upd(cpu_place, ball_y, cpu_speed):
         cpu_place += cpu_speed
     return cpu_place
 
-# функция обновления позиции мяча
 def ball_upd(ball_x_direction, ball_y_direction, ball_x, ball_y, ball_speed):
     ball_x += ball_x_direction * ball_speed
     ball_y += ball_y_direction * ball_speed
@@ -74,7 +69,6 @@ def ball_upd(ball_x_direction, ball_y_direction, ball_x, ball_y, ball_speed):
 
     return ball_x_direction, ball_y_direction, ball_x, ball_y
 
-# функция проверки столкновений мяча с ракетками
 def collusions_check(ball, player1, player2, ball_x_direction, ball_y_direction, ball_speed):
     global hit_sound
     global pl_speed, cpu_speed
@@ -102,9 +96,8 @@ def collusions_check(ball, player1, player2, ball_x_direction, ball_y_direction,
             cpu_speed += pl_speed_increment
     return ball_x_direction, ball_y_direction, ball_speed
 
-# функция проверки окончания раунда
 def check_the_end(ball_x):
-    global player1_score, player2_score, game_over
+    global player1_score, player2_score, game_over, winner_message
     if ball_x >= 590:
         player1_score += 1
         return True
@@ -113,7 +106,6 @@ def check_the_end(ball_x):
         return True
     return False
 
-# функция сброса позиций игроков и мяча
 def reset_positions():
     global player1_place, player2_place, cpu_place, ball_x, ball_y, ball_x_direction, ball_y_direction, ball_speed, pl_speed, cpu_speed, paused
     player1_place = 260
@@ -129,17 +121,40 @@ def reset_positions():
     paused = True
     pygame.time.set_timer(pygame.USEREVENT, 2000)
 
-# функция сброса счета
 def reset_scores():
     global player1_score, player2_score
     player1_score = 0
     player2_score = 0
 
-# выбор режима и количества раундов
+def handle_events():
+    global pl1_direction, pl2_direction, paused, pongloop
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pongloop = False
+        if event.type == pygame.KEYDOWN:  # работа с нажатыми кнопками
+            if event.key == pygame.K_w:
+                pl1_direction = -1
+            if event.key == pygame.K_s:
+                pl1_direction = 1
+            if event.key == pygame.K_UP:
+                pl2_direction = -1
+            if event.key == pygame.K_DOWN:
+                pl2_direction = 1
+            if event.key == pygame.K_SPACE:
+                paused = not paused
+            if event.key == pygame.K_ESCAPE:
+                pongloop = 0
+        if event.type == pygame.KEYUP:
+            if event.key in [pygame.K_w, pygame.K_s]:
+                pl1_direction = 0
+            if event.key in [pygame.K_UP, pygame.K_DOWN]:
+                pl2_direction = 0
+        if event.type == pygame.USEREVENT:
+            paused = False
+
 mode = choose_mode(screen, font_large, font_small, background, block_color)
 rounds = choose_rounds(screen, font_large, font_small, background, block_color)
 
-# если режим игры с cpu, то выбираем сложность
 if mode == "cpu":
     difficulty_settings = choose_difficulty(screen)
     ball_speed = difficulty_settings["ball_speed"]
@@ -148,12 +163,14 @@ if mode == "cpu":
 while pongloop:
     timer.tick(fr)
     screen.fill(background)
-    player1 = pygame.draw.rect(screen, block_color, [5, player1_place, 20, 80]) # отрисовываем ракетку игрока 1
+    player1 = pygame.draw.rect(screen, block_color, [5, player1_place, 20, 80])
     if mode == "cpu":
-        player2 = pygame.draw.rect(screen, block_color, [575, cpu_place, 20, 80])# отрисовываем ракетку компьютера
+        player2 = pygame.draw.rect(screen, block_color, [575, cpu_place, 20, 80])
     else:
-        player2 = pygame.draw.rect(screen, block_color, [575, player2_place, 20, 80])# отрисовываем ракетку игрока 2
+        player2 = pygame.draw.rect(screen, block_color, [575, player2_place, 20, 80])
     ball = pygame.draw.rect(screen, block_color, [ball_x, ball_y, 20, 20])
+
+    handle_events()  # вызываем функцию для обработки событий
 
     if not paused:
         if not game_over:
@@ -176,30 +193,6 @@ while pongloop:
             reset_positions()
             game_over = False
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pongloop = False
-        if event.type == pygame.KEYDOWN:#работа с нажатыми кнопками
-            if event.key == pygame.K_w:
-                pl1_direction = -1
-            if event.key == pygame.K_s:
-                pl1_direction = 1
-            if event.key == pygame.K_UP:
-                pl2_direction = -1
-            if event.key == pygame.K_DOWN:
-                pl2_direction = 1
-            if event.key == pygame.K_SPACE:
-                paused = not paused
-            if event.key == pygame.K_ESCAPE:
-                pongloop = 0
-        if event.type == pygame.KEYUP:
-            if event.key in [pygame.K_w, pygame.K_s]:
-                pl1_direction = 0
-            if event.key in [pygame.K_UP, pygame.K_DOWN]:
-                pl2_direction = 0
-        if event.type == pygame.USEREVENT:
-            paused = False
-
     if check_the_end(ball_x):
         reset_positions()
         if player1_score >= rounds or player2_score >= rounds:
@@ -216,15 +209,14 @@ while pongloop:
     if game_over:
         winner_text = menu_font.render(winner_message, True, block_color)
         screen.blit(winner_text, (200, 200))
+        pygame.display.flip()
+        pygame.time.wait(3000)  # ждем 3 секунды
+        pongloop = False  # выходим из игрового цикла
 
-    # отрисовка текущего счета и инструкции
     score_text = menu_font.render(f"{player1_score} - {player2_score}", True, block_color)
     screen.blit(score_text, (280, 10))
     instructions_text = instruction_font.render("Space: Pause | Esc: Exit", True, block_color)
     screen.blit(instructions_text, (10, 10))
-
-    # отрисовка сообщения о паузе
-
     ball_x_direction, ball_y_direction, ball_speed = collusions_check(ball, player1, player2, ball_x_direction,
                                                                       ball_y_direction, ball_speed)
     pygame.display.flip()
