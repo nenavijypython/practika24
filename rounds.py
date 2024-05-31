@@ -2,7 +2,7 @@ import pygame
 import sys
 
 def choose_rounds(screen, font_large, font_small, background, block_color):
-    rounds = 3  # Default value
+    rounds = 3  # стандарное значение
     rounds_selected = False
     while not rounds_selected:
         for event in pygame.event.get():
