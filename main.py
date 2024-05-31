@@ -111,11 +111,11 @@ def collusions_check(ball, player1, player2, ball_x_direction, ball_y_direction,
 # проверка конца игры
 def check_the_end(ball_x):
     global player1_score, player2_score, game_over, winner_message
-    if ball_x >= 590:
+    if ball_x >= 600:
         # игрок 1 забивает гол
         player1_score += 1
         return True
-    elif ball_x <= 10:
+    elif ball_x <= 0:
         # игрок 2 забивает гол
         player2_score += 1
         return True
